@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Staff {
+  id           Int      @id @default(autoincrement())
+  name         String
+  phone        String?
+  role         String?
+  salary       Float
+  joiningDate  DateTime?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  leaves       Leave[]
+  payments     SalaryPayment[]
+  expenses     StaffExpense[]
+  salaryHistory SalaryHistory[]
+}
+
+model SalaryHistory {
+  id        Int      @id @default(autoincrement())
+  staffId   Int
+  month     String
+  salary    Float
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, month])
+  @@index([staffId, month])
+}
+
+model Leave {
+  id         Int      @id @default(autoincrement())
+  staffId    Int
+  date       DateTime
+  rejoinDate DateTime?
+  days       Float    @default(1)
+  reason     String?
+  staff      Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model StaffExpense {
+  id        Int      @id @default(autoincrement())
+  staffId   Int
+  title     String
+  amount    Float
+  date      DateTime
+  category  String?
+  notes     String?
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model SalaryPayment {
+  id         Int      @id @default(autoincrement())
+  staffId    Int
+  month      String
+  baseSalary Float
+  leaveDays  Float    @default(0)
+  deduction  Float    @default(0)
+  paidAmount Float
+  paidAt     DateTime @default(now())
+  notes      String?
+  staff      Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, month])
+}
